@@ -14,13 +14,17 @@ let server = new Hapi.Server();
 server.connection(config.connect);
 server.route(routes);
 server.register([
-  Blipp,
+  // blipp is a simple hapi plugin that displays all the routes
+  { register: Blipp, options: { showAuth: true } },
+  // inert is a static file and directory handler plugin 
+  // that provides new handler methods for serving static files and directories
   Inert,
+  // templates rendering plugin support
   Vision,
+  // hapi swagger is a swagger interface for HAPI
   { register: HapiSwagger, options: config.swaggerOptions }
 ], (err) => {
   if (err) throw err;
-  
   server.views({
     engines: { html: require('handlebars') },
     path: __dirname + '/views'

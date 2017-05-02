@@ -1,5 +1,6 @@
 import Joi from 'Joi';
 import Boom from 'boom';
+import aguid from 'aguid';
 import User from '../models/user.model';
 import * as bcrypt from 'bcrypt';
 import { secret } from '../config';
@@ -68,9 +69,20 @@ export default class UserController {
 						const matchResult = await bcrypt.compare(password, userFound.password)
 						if (matchResult === true) {
 							console.log('password matched')
+							// sign the token
+							const sessionId = aguid();
+							console.log(sessionId)
+							// const session = await request.server.methodsAsync.getSession(sessionId, {id: sessionId, userId: user.id, role: user.role});
+							// console.log(Object.keys(request.server))
+							let arr = Object.keys(request.server)
+							console.log("Auth State ", request.auth)
+							request.auth.set(userFound);
+							console.log("Auth State ", request.auth)
+							console.log("Cookie: ", request.state)
+							console.log("Plugins: ", request.server.plugins)
 							const user = { id: userFound._id, username: userFound.username, permissions: [] }
 							const token = sign(user, secret, { expiresIn: "7d" })
-							return reply({ jwt: token, user: user })
+							return reply({ jwt: token, user: user, serverArray: arr })
 						} else {
 							console.log('password NOT matched')
 							return reply(Boom.forbidden(util.format(error.passwordNotMatched, username)));
