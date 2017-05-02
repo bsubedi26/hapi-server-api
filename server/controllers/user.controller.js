@@ -1,148 +1,92 @@
 import Joi from 'Joi';
+import Boom from 'boom';
 import User from '../models/user.model';
+import * as bcrypt from 'bcrypt';
+import { secret } from '../config';
+import { sign } from 'jsonwebtoken';
+import util from 'util';
 
 const error = {
-	userNotFound: 'The user id %s does not exist.',
+	userNotFound: 'The user name %s does not exist.',
 	userListNotFound: 'Unable to obtain user list.',
 	unableToUpdateOtherUser: 'You are unable to update other user.',
-	emailDuplicate: 'The email address %s is already used.'
+	emailDuplicate: 'The email address %s is already used.',
+	passwordNotMatched: 'Sorry, the password does not match the username'
 };
 const validator = {
-	// userId: Joi.objectId(),
-	userId: Joi.number(),
-	username: Joi.string().alphanum().min(3).max(30),
-	password: Joi.string().regex(/^[a-zA-Z0-9]{8,30}$/),
-	email: Joi.string().email(),
-	role: Joi.string().default('USER'),
-	predicate: Joi.string().default('{}'),
-	sort: Joi.string().default('{}'),
-	page: Joi.number().integer().min(1).default(1),
-	pageSize: Joi.number().integer().min(1).max(20).default(20)
+	username: Joi.string(),
+	password: Joi.string()
 };
 
-export default {
-	createOne: {
-		// auth: 'jwt',
-		validate: {
-			payload: {
-				// username: validator.username.required(),
-				// password: validator.password.required(),
-				// email: validator.email.required(),
-				// role: validator.role.required()
-			}
-		},
-		handler: async function (request, reply) {
-				const { username, password } = request.payload
-        console.log(request.payload, 'pp')
-        const existingUser = await User.findOne({ username: request.payload.username }).exec();
-				if (existingUser) {
-					return reply(Boom.forbidden(util.format(error.emailDuplicate, request.payload.email)));
+export default class UserController {
+	attemptRegister() {
+		return {
+			validate: {
+				payload: {
+					username: validator.username.required(),
+					password: validator.password.required()
 				}
-        const user = new User({
-          username: username,
-          password: password 
-        })
-        const saved = await user.save()
-        reply(saved)
-				// const validateResult = Joi.any().valid(config.acl.roles).validate(request.payload.role);
-				// if (!validateResult.error) {
-				// 	const user = new User(_.merge(request.payload, {
-				// 		password: bcrypt.hashSync(request.payload.password, 10)
-				// 	}));
-				// 	const result = await user.save();
-				// 	return reply(await result.getInfo());
-				// }
-				// throw validateResult.error;
-			}
-	},
-	read: {
-		validate: {
-			query: {
-				page: validator.page.optional(),
-				pageSize: validator.pageSize.optional(),
-				predicate: validator.predicate.optional(),
-				sort: validator.sort.optional()
-			}
-		},
-		handler: {
-			async: async function (request, reply) {
-				const predicate = JSON.parse(request.query.predicate);
-				const sort = JSON.parse(request.query.sort);
-				const page = request.query.page;
-				const pageSize = request.query.pageSize;
-
-				const result = await User.find(predicate).sort(sort).skip((page - 1) * pageSize).limit(pageSize).exec();
-				if (!result) {
-					return reply(Boom.notFound(error.userListNotFound));
-				}
-				reply(await Promise.all(_.map(result || [], (user) => user.getInfo())));
-			}
-		}
-	},
-	readOne: {
-		validate: {
-			params: {
-				userId: validator.userId.required()
-			}
-		},
-		handler: {
-			async: async function (request, reply) {
-				const result = await User.findById(request.params.userId).exec();
-				if (!result) {
-					return reply(Boom.notFound(util.format(error.userNotFound, request.params.userId)));
-				}
-				reply(result.getInfo());
-			}
-		}
-	},
-	updateOne: {
-		validate: {
-			payload: {
-				username: validator.username.optional(),
-				password: validator.password.optional(),
-				email: validator.email.optional(),
-				role: validator.role.optional()
 			},
-			params: {
-				userId: validator.userId.required()
-			}
-		},
-		handler: {
-			async: async function (request, reply) {
-				const {role, userId} = request.auth.credentials;
-				if (role !== 'ADMIN' && userId !== request.params.userId) {
-					return reply(Boom.forbidden(error.unableToUpdateOtherUser));
+			handler: async (request, reply) => {
+				const { username, password } = request.payload
+				try {
+					const result = await User.findOne({ username: username }).exec();
+					if (result) {
+						// return reply(Boom.notFound(util.format(error.userNotFound, request.params.userId)));
+						return reply(Boom.forbidden(util.format(error.emailDuplicate, username)));
+					} else {
+						console.log('username is available -> try to create')
+						try {
+							const hash = await bcrypt.hash(password, 10)
+							let newDoc = await User.create({ username: username, password: hash })
+							reply(newDoc);
+						}
+						catch (err) {
+							return reply(Boom.badImplementation(err));
+						}
+					}
+
 				}
-				const existingUser = await User.findById(request.params.userId).exec();
-				if (!existingUser) {
-					return reply(Boom.notFound(util.format(error.userNotFound, request.params.userId)));
+				catch (err) {
+					return reply(Boom.badImplementation(err));
 				}
-				await existingUser.update(_.merge(request.payload, request.payload.password ? {
-					password: bcrypt.hashSync(request.payload.password, 10)
-				} : {}));
-				const result = await User.findById(request.params.userId).exec();
-				return reply(await result.getInfo());
-			}
-		}
-	},
-	deleteOne: {
-		plugins: {
-			hapiAuthorization: {role: 'ADMIN'}
-		},
-		validate: {
-			params: {
-				userId: validator.userId.required()
-			}
-		},
-		handler: {
-			async: async function (request, reply) {
-				const existingUser = await User.findById(request.params.userId).exec();
-				if (!existingUser) {
-					return reply(Boom.notFound(util.format(error.userNotFound, request.params.userId)));
-				}
-				const result = await existingUser.remove();
-				return reply(await result.getInfo());
 			}
 		}
 	}
-};
+
+	attemptLogin() {
+		return {
+			handler: async (request, reply) => {
+				const { username, password } = request.payload
+				try {
+					const userFound = await User.findOne({ username: username }).exec();
+					console.log('attempt user found ', userFound)
+					if (!userFound) {
+						return reply(Boom.notFound(util.format(error.userNotFound, username)));
+					} else {
+						// check password match
+						const matchResult = await bcrypt.compare(password, userFound.password)
+						if (matchResult === true) {
+							console.log('password matched')
+							const user = { id: userFound._id, username: userFound.username, permissions: [] }
+							const token = sign(user, secret, { expiresIn: "7d" })
+							return reply({ jwt: token, user: user })
+						} else {
+							console.log('password NOT matched')
+							return reply(Boom.forbidden(util.format(error.passwordNotMatched, username)));
+						}
+					}
+				}
+				catch (err) {
+					return reply(Boom.badImplementation(err));
+				}
+			},
+			validate: {
+				payload: {
+					username: validator.username.required(),
+					password: validator.password.required()
+				}
+			}
+		}
+	}
+}

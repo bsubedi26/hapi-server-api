@@ -11,14 +11,10 @@ const UserSchema = new Schema({
 //  permissions: { type: Array }
 });
 
-// pre save - hash incoming password before saving to db
-UserSchema.pre('save', async (next) => {
-    const user = this;
-    next();
-});
-
-UserSchema.methods.fullName = function() {
-  return (this.firstName.trim() + " " + this.lastName.trim());
+UserSchema.methods.getUsername = function() {
+  return {
+    username: this.username 
+  }
 };
 
 export default mongoose.model('User', UserSchema);

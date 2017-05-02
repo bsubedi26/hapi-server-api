@@ -2,33 +2,42 @@
 
 const Joi = require('joi');
 
+import UserController from '../controllers/user.controller';
 
-import users from '../controllers/user.controller';
-
+let userController = new UserController()
 export default [
-	{method: 'POST', path: '/api/user/create', config: users.createOne},
-    {
+  {
+    method: 'POST',
+    path: '/api/user/login',
+    config: userController.attemptLogin
+  },
+  {
+    method: 'POST',
+    path: '/api/user/register',
+    config: userController.attemptRegister
+  },
+  {
     method: 'GET',
     path: '/route/user',
     config: {
       tags: ['api'],
       handler: (request, reply) => {
-        reply('Welcome to / route.', request.query)
-        console.log(request.query)
+        console.log("hIT")
+        reply('Welcome to / route.')
       },
       validate: {
         query: {
-          hour: Joi.number()
+          // hour: Joi.number()
           // minute: validator.number().min(0).max(59).with('hour')
         }
       }
     }
   },
-	// {method: 'GET', path: '/users/{userId}', config: users.readOne},
-	// {method: 'PUT', path: '/users/{userId}', config: users.updateOne},
-	// {method: 'DELETE', path: '/users/{userId}', config: users.deleteOne},
+  // {method: 'GET', path: '/users/{userId}', config: users.readOne},
+  // {method: 'PUT', path: '/users/{userId}', config: users.updateOne},
+  // {method: 'DELETE', path: '/users/{userId}', config: users.deleteOne},
 
-	// {method: 'GET', path: '/users', config: users.read}
+  // {method: 'GET', path: '/users', config: users.read}
 ];
 
 // const defaultHandler = function (request, reply) {

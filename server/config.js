@@ -18,6 +18,8 @@ exports.swaggerOptions = {
   deReference: true
 };
 
+exports.secret = 'BbZJjyoXAdr8BUZuiKKARWimKfrSmQ6fv8kZ7OFfc';
+
 // mongoose/mongoDB configuration
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
