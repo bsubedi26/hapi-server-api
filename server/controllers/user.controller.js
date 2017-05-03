@@ -19,6 +19,26 @@ const validator = {
 	password: Joi.string()
 };
 
+async function verifyUniqueUser(request, reply) {
+  // Find an entry from the database that
+  // matches either the email or username
+	const { username, password } = request.payload
+	try {
+    const userFound = await this.findOne({ username: username }).exec()
+		console.log('user found ', userFound)
+		reply.continue()
+    if (userFound) {
+      if (userFound.username === username) {
+        return Boom.badRequest('Username taken');
+      }
+    } else {
+      return Promise.resolve('ok')
+    }
+  }
+  catch (err) {
+      return Boom.badRequest('Username taken');
+    }
+  }
 export default class UserController {
 	attemptRegister() {
 		return {
@@ -28,24 +48,30 @@ export default class UserController {
 					password: validator.password.required()
 				}
 			},
+			pre: [
+				{ method: verifyUniqueUser, assign: 'user' }
+			],
 			handler: async (request, reply) => {
 				const { username, password } = request.payload
+				console.log('register func')
 				try {
-					const result = await User.findOne({ username: username }).exec();
-					if (result) {
-						// return reply(Boom.notFound(util.format(error.userNotFound, request.params.userId)));
-						return reply(Boom.forbidden(util.format(error.emailDuplicate, username)));
-					} else {
-						console.log('username is available -> try to create')
-						try {
-							const hash = await bcrypt.hash(password, 10)
-							let newDoc = await User.create({ username: username, password: hash })
-							reply(newDoc);
-						}
-						catch (err) {
-							return reply(Boom.badImplementation(err));
-						}
-					}
+					// const result = await User.findOne({ username: username }).exec();
+					// const result = await User.verifyUniqueUser({ username: username }).exec();
+					// console.log('rrr ', result)
+
+					// if (result) {
+					// 	return reply(Boom.forbidden(util.format(error.emailDuplicate, username)));
+					// } else {
+					// 	console.log('username is available -> try to create')
+					// 	try {
+					// 		const hash = await bcrypt.hash(password, 10)
+					// 		let newDoc = await User.create({ username: username, password: hash })
+					// 		reply(newDoc);
+					// 	}
+					// 	catch (err) {
+					// 		return reply(Boom.badImplementation(err));
+					// 	}
+					// }
 
 				}
 				catch (err) {
@@ -71,7 +97,7 @@ export default class UserController {
 							console.log('password matched')
 							// sign the token
 							const sessionId = aguid();
-							console.log(sessionId)
+							console.log("generated session id ", sessionId)
 							// const session = await request.server.methodsAsync.getSession(sessionId, {id: sessionId, userId: user.id, role: user.role});
 							// console.log(Object.keys(request.server))
 							let arr = Object.keys(request.server)
