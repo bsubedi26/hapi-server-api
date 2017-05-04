@@ -1,10 +1,5 @@
 'use strict';
 
-exports.connect = {
-  host: 'localhost',
-  port: 3000
-};
-
 exports.swaggerOptions = {
   documentationPage: true,
   swaggerUI: true,

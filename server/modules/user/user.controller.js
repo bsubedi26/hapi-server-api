@@ -1,9 +1,9 @@
 import Joi from 'Joi';
 import Boom from 'boom';
 import aguid from 'aguid';
-import User from '../models/user.model';
+import User from './user.model';
 import * as bcrypt from 'bcrypt';
-import { secret } from '../config';
+import { secret } from '../../config';
 import { sign } from 'jsonwebtoken';
 import util from 'util';
 

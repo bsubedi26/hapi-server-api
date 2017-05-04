@@ -2,7 +2,7 @@
 
 const Joi = require('joi');
 
-import UserController from '../controllers/user.controller';
+import UserController from './user.controller';
 
 let userController = new UserController()
 export default [
@@ -22,7 +22,6 @@ export default [
     config: {
       tags: ['api'],
       handler: (request, reply) => {
-        console.log("hIT")
         reply('Welcome to / route.')
       },
       validate: {
