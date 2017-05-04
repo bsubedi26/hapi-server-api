@@ -18,18 +18,13 @@ export default [
   },
   {
     method: 'GET',
-    path: '/route/user',
+    path: '/api/user',
     config: {
       tags: ['api'],
       handler: (request, reply) => {
-        reply('Welcome to / route.')
+        console.log(request.server.methods)
+        reply('Welcome to /user route.')
       },
-      validate: {
-        query: {
-          // hour: Joi.number()
-          // minute: validator.number().min(0).max(59).with('hour')
-        }
-      }
     }
   },
   // {method: 'GET', path: '/users/{userId}', config: users.readOne},

@@ -1,16 +1,14 @@
 import routes from './user.routes';
+import { checkAsync, verifyUniqueUser, createUser, createToken } from './user.method';
 
 const UserPlugin = function (server, options, next) {
   
-  server.route(routes)
-  // server.route({ 
-  //   path: '/about',
-  //   method: 'GET',
-  //   handler: require('./routes/about')
-  // });
- 
-  next();
- 
+  server.route(routes);
+  server.method("checkAsync", checkAsync)
+  server.method("verifyUniqueUser", verifyUniqueUser)
+  server.method("createUser", createUser)
+  server.method("createToken", createToken)
+  next()
 };
  
 UserPlugin.attributes = {
@@ -20,4 +18,4 @@ UserPlugin.attributes = {
   }
 };
 
-export default UserPlugin
+export default UserPlugin;

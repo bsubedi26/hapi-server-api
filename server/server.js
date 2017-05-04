@@ -30,7 +30,27 @@ Glue.compose(manifest, (err, server) => {
       engines: { html: require('handlebars') },
       path: __dirname + '/views'
     });
-    
+
+
+    server.route({
+      method: 'GET',
+      path: '/',
+      handler: (request, reply) => {
+        console.log(Object.keys(server.methods))
+        server.methods.checkAsync()
+        reply({})
+      }
+    })
+
+    server.route({
+      method: 'GET',
+      path: '/2',
+      handler: (request, reply) => {
+        console.log('second')
+        reply({})
+      }
+    })
+
     server.start((err) => {
       if (err) throw err;
       console.log('Server running at:', server.info.uri);

@@ -1,6 +1,5 @@
 import Joi from 'Joi';
 import Boom from 'boom';
-import aguid from 'aguid';
 import User from './user.model';
 import * as bcrypt from 'bcrypt';
 import { secret } from '../../config';
@@ -19,26 +18,7 @@ const validator = {
 	password: Joi.string()
 };
 
-async function verifyUniqueUser(request, reply) {
-  // Find an entry from the database that
-  // matches either the email or username
-	const { username, password } = request.payload
-	try {
-    const userFound = await this.findOne({ username: username }).exec()
-		console.log('user found ', userFound)
-		reply.continue()
-    if (userFound) {
-      if (userFound.username === username) {
-        return Boom.badRequest('Username taken');
-      }
-    } else {
-      return Promise.resolve('ok')
-    }
-  }
-  catch (err) {
-      return Boom.badRequest('Username taken');
-    }
-  }
+
 export default class UserController {
 	attemptRegister() {
 		return {
@@ -48,33 +28,21 @@ export default class UserController {
 					password: validator.password.required()
 				}
 			},
-			pre: [
-				{ method: verifyUniqueUser, assign: 'user' }
-			],
 			handler: async (request, reply) => {
 				const { username, password } = request.payload
-				console.log('register func')
 				try {
-					// const result = await User.findOne({ username: username }).exec();
-					// const result = await User.verifyUniqueUser({ username: username }).exec();
-					// console.log('rrr ', result)
-
-					// if (result) {
-					// 	return reply(Boom.forbidden(util.format(error.emailDuplicate, username)));
-					// } else {
-					// 	console.log('username is available -> try to create')
-					// 	try {
-					// 		const hash = await bcrypt.hash(password, 10)
-					// 		let newDoc = await User.create({ username: username, password: hash })
-					// 		reply(newDoc);
-					// 	}
-					// 	catch (err) {
-					// 		return reply(Boom.badImplementation(err));
-					// 	}
-					// }
-
+					const usernameAvailable = await request.server.methods.verifyUniqueUser(username)
+					console.log('Is the username available? ', usernameAvailable)
+					if (usernameAvailable === true) {
+						console.log('username is available -> try to create')
+						const newDoc = await request.server.methods.createUser(username, password)
+						reply(newDoc).code(201)
+					} else {
+						return reply(Boom.badRequest(util.format(error.emailDuplicate, username)));
+					}
 				}
 				catch (err) {
+					console.log('controller -> attempt register() error: ', err);
 					return reply(Boom.badImplementation(err));
 				}
 			}
@@ -95,20 +63,12 @@ export default class UserController {
 						const matchResult = await bcrypt.compare(password, userFound.password)
 						if (matchResult === true) {
 							console.log('password matched')
-							// sign the token
-							const sessionId = aguid();
-							console.log("generated session id ", sessionId)
-							// const session = await request.server.methodsAsync.getSession(sessionId, {id: sessionId, userId: user.id, role: user.role});
-							// console.log(Object.keys(request.server))
-							let arr = Object.keys(request.server)
-							console.log("Auth State ", request.auth)
-							request.auth.set(userFound);
-							console.log("Auth State ", request.auth)
-							console.log("Cookie: ", request.state)
-							console.log("Plugins: ", request.server.plugins)
-							const user = { id: userFound._id, username: userFound.username, permissions: [] }
-							const token = sign(user, secret, { expiresIn: "7d" })
-							return reply({ jwt: token, user: user, serverArray: arr })
+							// const session = await request.server.methods.getSession(sessionId, {id: sessionId, userId: user.id, role: user.role});
+							// console.log("Auth State ", request.auth)
+							// console.log("Cookie: ", request.state)
+							// console.log("Plugins: ", request.server.plugins)
+							const token = await request.server.methods.createToken(userFound)
+							return reply({ jwt: token, user: userFound })
 						} else {
 							console.log('password NOT matched')
 							return reply(Boom.forbidden(util.format(error.passwordNotMatched, username)));
@@ -116,7 +76,7 @@ export default class UserController {
 					}
 				}
 				catch (err) {
-					return reply(Boom.badImplementation(err));
+					return reply(Boom.badRequest(err));
 				}
 			},
 			validate: {

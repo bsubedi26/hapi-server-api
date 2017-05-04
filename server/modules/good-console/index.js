@@ -27,4 +27,4 @@ goodConsolePlugin.attributes = {
   }
 };
 
-export default goodConsolePlugin
+export default goodConsolePlugin;
