@@ -1,3 +1,4 @@
+<h2>{{hi}}</h2>
 <h2>Register</h2>
 <h3>Username: </h3>
 <input type="text" id="username">
@@ -24,7 +25,7 @@
     }
     $.ajax({
       type: "POST",
-      url: '/api/user/create',
+      url: '/api/user/register',
       data: JSON.stringify(data),
       contentType: "application/json; charset=utf-8",
       dataType: "json",

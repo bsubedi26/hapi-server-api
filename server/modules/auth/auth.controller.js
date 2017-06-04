@@ -4,7 +4,7 @@ import Joi from'joi';
 import Promise from 'bluebird';
 import bcrypt from 'bcrypt';
 import User from '../models/User';
-import config from '../config';
+import config from '../../config/app.config';
 const bcryptAsync = Promise.promisifyAll(bcrypt);
 
 export default {

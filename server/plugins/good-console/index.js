@@ -1,6 +1,6 @@
 import good from 'good';
 
-const goodConsolePlugin = async (server, options, next) => {
+const goodConsolePlugin = async function(server, options, next) {
   const goodOptions = {
     reporters: {
       myConsoleReporter: [{

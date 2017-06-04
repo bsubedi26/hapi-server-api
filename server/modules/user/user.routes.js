@@ -9,12 +9,18 @@ export default [
   {
     method: 'POST',
     path: '/api/user/login',
-    config: userController.attemptLogin
+    config: {
+      auth: false,
+      handler: userController.attemptLogin
+    }
   },
   {
     method: 'POST',
     path: '/api/user/register',
-    config: userController.attemptRegister
+    config: {
+      auth: false,
+      handler: userController.attemptRegister
+    }
   },
   {
     method: 'GET',

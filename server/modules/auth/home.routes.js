@@ -22,7 +22,8 @@ export default [
     config: {
       description: 'return index html page',
       handler: (request, reply) => {
-        reply.view('index');
+        // reply.view('index');
+        reply({done: 'index'});
       },
     }
   },
