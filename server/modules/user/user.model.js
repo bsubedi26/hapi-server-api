@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const UserSchema = new Schema({
   username: { type: String, unique: true },
@@ -16,4 +16,4 @@ UserSchema.methods.getUsername = function () {
   }
 };
 
-export default mongoose.model('User', UserSchema);
+export default model('User', UserSchema);
