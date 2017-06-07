@@ -42,7 +42,7 @@ export default class UserController {
 					}
 				}
 				catch (err) {
-					console.log('controller -> attempt register() error: ', err);
+					console.log('controller --> attempt register() error: ', err);
 					return reply(Boom.badImplementation(err));
 				}
 			}
