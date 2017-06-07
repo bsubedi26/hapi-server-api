@@ -16,4 +16,10 @@ UserSchema.methods.getUsername = function () {
   }
 };
 
+UserSchema.methods.getEmail = function () {
+  return {
+    email: this.email
+  }
+};
+
 export default model('User', UserSchema);
