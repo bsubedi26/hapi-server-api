@@ -15,10 +15,12 @@ exports.plugin = {
       method: 'GET',
       path: '/user',
       handler: (request, h) => {
+        // console.log(Object.keys(request.server.app))
+        // console.log(server.app.config)
         return '/user'
       },
       options: {
-        auth: 'simple'
+        // auth: 'simple'
       }
     })
     server.route({
