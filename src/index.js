@@ -1,12 +1,23 @@
-const Glue = require('glue');
-const manifest = require('./config/manifest');
+const Hapi = require('hapi')
 
-Glue.compose(manifest, { relativeTo: __dirname }, (err, server) => {
-  if (err) {
-    console.log('server.register err:', err);
+const server = new Hapi.Server({  
+  host: 'localhost',
+  port: 3030
+})
+
+const main = async () => {
+  try {      
+    await server.register({ plugin: require('./plugin/auth') })
+    await server.register({ plugin: require('./module/user') })
+
+    await server.start()
+    console.log('✅  Server is listening on ' + server.info.uri.toLowerCase())
   }
+  catch (err) {  
+    console.error(err)
+    process.exit(1)
+  }
+}
 
-  server.start(() => {
-    console.log('✅  Server is listening on ' + server.info.uri.toLowerCase());
-  });
-});
+
+main()
