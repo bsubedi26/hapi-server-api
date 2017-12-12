@@ -2,9 +2,11 @@ const Joi = require('joi'),
   Boom = require('boom'),
   Common = require('./common'),
   Config = require('../config'),
-  Jwt = require('jsonwebtoken'),
-  User = require('../model/user.model');
+  // knex = require('../config/knex'),
+  Jwt = require('jsonwebtoken');
+  // User = require('../model/user.model');
 
+const User = {}
 const privateKey = Config.key.privateKey;
 
 const beforeGet = (request, h) => {
@@ -17,8 +19,14 @@ exports.get = {
     { assign: 'method1', method: beforeGet }
   ],
   handler: (request, h) => {
-    console.log('pre returns: ', request.pre.method1)
-    return User.find()
+    // console.log('pre returns: ', request.pre.method1)
+    // console.log(Object.keys(request.server.app))
+    // console.log(server.app.config)
+    console.log(Object.keys(request.db))
+    console.log(Object.keys(request.db.collections))
+    console.log(Object.keys(request.db.models))
+    return 'dne'
+    // return request.db.select().table('user')
   }
 }
 
@@ -30,8 +38,17 @@ exports.create = {
     }
   },
   handler: (request, h) => {
-    request.payload.password = Common.encrypt(request.payload.password)
-    return User.create(request.payload)
+    const { payload, knex } = request
+    // payload.password = Common.encrypt(payload.password)
+    const response = knex.insert(payload).into('user').returning('*')
+    response.then(res => {
+      console.log(res)
+      return res
+    })
+    .catch(res => {
+      console.log(res)
+    })
+    // return response
   }
 }
 

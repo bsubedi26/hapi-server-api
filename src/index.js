@@ -2,6 +2,7 @@ const Hapi = require('hapi')
 const config = require('./config')
 const { host, port } = config.server
 const Routes = require('./routes')
+const db = require('./config/mongoose')
 
 const server = new Hapi.Server({  
   host,
@@ -23,10 +24,16 @@ const main = async () => {
     // await registerPlugins(server)
     await registerRoutes(server)
 
+
+    // setters
+    server.app.config = config
+    server.decorate('request', 'db', db)
+
+    // start server
     await server.start()
     console.log('Server is listening on ' + server.info.uri.toLowerCase())
-    server.app.config = config
-    // console.log(server.app.config)
+
+    
   }
   catch (err) {  
     console.error(err)
